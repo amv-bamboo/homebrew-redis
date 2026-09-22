@@ -34,32 +34,15 @@ cask "redis" do
     end
 
     # link binaries
-    symlink_children "{{caskbase}}/bin/", "{{basepath}}/bin/"
+    symlink_children "{{caskbase}}/bin/", "{{HOMEBREW_PREFIX}}/bin/", remove_on_uninstall: true
 
     # link modules
-    symlink_children "{{caskbase}}/lib/redis/modules/*.so", "{{HOMEBREW_PREFIX}}/lib/redis/modules"
+    symlink_children "{{caskbase}}/lib/redis/modules/*.so", "{{HOMEBREW_PREFIX}}/lib/redis/modules", remove_on_uninstall: true
   end
 
   uninstall_postflight_steps do
-    basepath = HOMEBREW_PREFIX.to_s
 
-    # Remove binary symlinks
-    binaries.each do |item|
-      dest = "#{basepath}/bin/#{item}"
-      File.delete(dest) if File.symlink?(dest) && File.exist?(dest)
-    end
-
-    # Remove module symlinks
-    moduledir = "#{basepath}/lib/redis/modules"
-    Dir["#{moduledir}/*.so"].each do |item|
-      module_name = File.basename(item)
-      dest = "#{moduledir}/#{module_name}"
-      File.delete(dest)
-    end
-
-    # Clean up empty directories
-    FileUtils.rm_rf(moduledir) if Dir.empty?(moduledir)
-    FileUtils.rm_rf("#{basepath}/lib/redis") if Dir.empty?("#{basepath}/lib/redis")
+    remove "{{HOMEBREW_PREFIX}}/lib/redis/"
   end
 
   caveats <<~EOS
